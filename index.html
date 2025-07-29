@@ -1,85 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MicroEvoVerse – Simulation</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>MicroEvo Simulation</title>
+  <style>
+    canvas { border: 1px solid #333; display: block; margin: 20px auto; }
+    .controls, .stats { text-align: center; margin-top: 10px; }
+    .sliders { display: flex; justify-content: center; gap: 20px; margin-top: 10px; }
+    input[type=range] { width: 150px; }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>🌿 MicroEvoVerse</h1>
-    <nav>
-      <button onclick="window.location.href='graphs.html'">📈 View Graphs</button>
-    </nav>
-  </header>
 
-  <main>
-    <canvas id="simulationCanvas" width="800" height="600">
-      Your browser doesn’t support canvas. Try a modern one!
-    </canvas>
+<canvas id="simulationCanvas" width="800" height="600"></canvas>
 
-    <section id="simulationControls">
-      <h2>Controls</h2>
-      <button onclick="startSimulation()">Start</button>
-      <button onclick="pauseSimulation()">Pause</button>
-      <button onclick="resetSimulation()">Reset</button>
-    </section>
+<div class="controls">
+  <button id="startBtn">Start</button>
+  <button id="stopBtn">Pause</button>
+  <button id="resetBtn">Reset</button>
+</div>
 
-    <section id="simulationConfig">
-      <h2>Configuration</h2>
+<div class="sliders">
+  <div>
+    <label>Mutation Rate: <span id="mutationDisplay">0.05</span></label><br>
+    <input type="range" id="mutationSlider" min="0" max="1" step="0.01" value="0.05">
+  </div>
+  <div>
+    <label>Season Frequency: <span id="seasonDisplay">1200</span></label><br>
+    <input type="range" id="seasonSlider" min="100" max="2000" step="100" value="1200">
+  </div>
+  <div>
+    <label>Season Rate: <span id="seasonRateDisplay">5</span></label><br>
+    <input type="range" id="seasonRateSlider" min="1" max="10" step="1" value="5">
+  </div>
+</div>
 
-      <label for="mutationSlider">Mutation Rate:
-        <input type="range" id="mutationSlider" min="0" max="0.2" step="0.01" value="0.05">
-        <span id="mutationDisplay">0.05</span>
-      </label>
+<div class="stats">
+  <p>Season: <span id="currentSeason">Spring</span></p>
+  <p>Creatures: <span id="creatureCount">0</span></p>
+  <p>Births: <span id="birthCount">0</span></p>
+  <p>Deaths: <span id="deathCount">0</span></p>
+  <p>Food Level: <span id="foodLevel">200</span></p>
+  <p>Government: <span id="governmentType">tribal</span></p>
+  <p>Leaders: <span id="leaderCount">0</span></p>
+  <p>Workers: <span id="workerCount">0</span></p>
+  <p>Elites: <span id="eliteCount">0</span></p>
+</div>
 
-      <label for="seasonSlider">Season Frequency (ticks):
-        <input type="range" id="seasonSlider" min="200" max="2400" step="100" value="1200">
-        <span id="seasonDisplay">1200</span>
-      </label>
-
-      <label for="seasonRateSlider">Season Rate (speed):
-        <input type="range" id="seasonRateSlider" min="1" max="10" step="1" value="5">
-        <span id="seasonRateDisplay">5</span>
-      </label>
-    </section>
-
-    <section id="simulationStats">
-      <h2>Simulation Stats</h2>
-      <ul>
-        <li><strong>Current Season:</strong> <span id="currentSeason">Spring</span></li>
-        <li><strong>Creature Count:</strong> <span id="creatureCount">0</span></li>
-        <li><strong>Food Level:</strong> <span id="foodLevel">0</span></li>
-        <li><strong>Births:</strong> <span id="birthCount">0</span></li>
-        <li><strong>Deaths:</strong> <span id="deathCount">0</span></li>
-      </ul>
-    </section>
-
-    <section id="disasterControls">
-      <h2>Natural Disaster Simulator</h2>
-      <button onclick="triggerDisaster('fire')">🔥 Firestorm</button>
-      <button onclick="triggerDisaster('quake')">🌏 Earthquake</button>
-      <button onclick="triggerDisaster('flood')">🌊 Flood</button>
-      <button onclick="triggerDisaster('drought')">☀️ Drought</button>
-      <button onclick="triggerDisaster('plague')">🦠 Plague</button>
-    </section>
-
-    <section id="societyInfo">
-      <h2>🏛️ Society Overview</h2>
-      <ul>
-        <li><strong>Dominant Government:</strong> <span id="governmentType">Tribal</span></li>
-        <li><strong>Leader Count:</strong> <span id="leaderCount">0</span></li>
-        <li><strong>Worker Count:</strong> <span id="workerCount">0</span></li>
-        <li><strong>Elite Count:</strong> <span id="eliteCount">0</span></li>
-      </ul>
-    </section>
-  </main>
-
-  <footer>
-    <p>Created by Solus • Evolving ecosystems, one problem at a time.</p>
-  </footer>
-
-  <script src="main.js"></script>
+<script src="main.js"></script>
 </body>
 </html>
+
