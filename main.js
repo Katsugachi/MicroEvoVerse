@@ -127,7 +127,7 @@ function averageTrait(a, b, key) {
   return Math.max(1, value);
 }
 
-function updateCreature(creature) {
+function updateCreatures(creature) {
   const nearestFood = findNearestFood(creature);
 
   if (nearestFood) {
