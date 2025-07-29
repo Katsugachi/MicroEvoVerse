@@ -285,6 +285,14 @@ function avgTrait(key) {
   return parseFloat((total / creatures.length).toFixed(2));
 }
 
+function evolveCreature(creature) {
+  if (tick % 500 === 0) {
+    creature.speed += 0.1;
+    creature.stealth += 0.1;
+    // Maybe shift government preference or language lexicon
+  }
+}
+
 function applyRepulsion(creature) {
   for (const other of creatures) {
     if (creature === other) continue;
@@ -295,6 +303,8 @@ function applyRepulsion(creature) {
       creature.x += dx * 0.02;
       creature.y += dy * 0.02;
     }
+  }
+}  
 function drawSimulation() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   creatures.forEach(c => {
