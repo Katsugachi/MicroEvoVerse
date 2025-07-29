@@ -46,7 +46,7 @@
     </section>
 
     <section id="simulationStats">
-      <h2>📊 Simulation Stats</h2>
+      <h2>Simulation Stats</h2>
       <ul>
         <li><strong>Current Season:</strong> <span id="currentSeason">Spring</span></li>
         <li><strong>Creature Count:</strong> <span id="creatureCount">0</span></li>
@@ -55,10 +55,29 @@
         <li><strong>Deaths:</strong> <span id="deathCount">0</span></li>
       </ul>
     </section>
+
+    <section id="disasterControls">
+      <h2>Natural Disaster Simulator</h2>
+      <button onclick="triggerDisaster('fire')">🔥 Firestorm</button>
+      <button onclick="triggerDisaster('quake')">🌏 Earthquake</button>
+      <button onclick="triggerDisaster('flood')">🌊 Flood</button>
+      <button onclick="triggerDisaster('drought')">☀️ Drought</button>
+      <button onclick="triggerDisaster('plague')">🦠 Plague</button>
+    </section>
+
+    <section id="societyInfo">
+      <h2>🏛️ Society Overview</h2>
+      <ul>
+        <li><strong>Dominant Government:</strong> <span id="governmentType">Tribal</span></li>
+        <li><strong>Leader Count:</strong> <span id="leaderCount">0</span></li>
+        <li><strong>Worker Count:</strong> <span id="workerCount">0</span></li>
+        <li><strong>Elite Count:</strong> <span id="eliteCount">0</span></li>
+      </ul>
+    </section>
   </main>
 
   <footer>
-    <p>Created by Solus • Intelligent Evolving Ecosystems</p>
+    <p>Created by Solus • Evolving ecosystems, one problem at a time.</p>
   </footer>
 
   <script src="main.js"></script>
