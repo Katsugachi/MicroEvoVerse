@@ -128,33 +128,35 @@ function averageTrait(a, b, key) {
 }
 
 function updateCreature(creature) {
-  let nearestFood = findNearestFood(creature);
-  
+  const nearestFood = findNearestFood(creature);
+
   if (nearestFood) {
-    let dx = nearestFood.x - creature.x;
-    let dy = nearestFood.y - creature.y;
-    let angle = Math.atan2(dy, dx);
-    
+    const dx = nearestFood.x - creature.x;
+    const dy = nearestFood.y - creature.y;
+    const angle = Math.atan2(dy, dx);
+
+    // Move toward food
     creature.x += Math.cos(angle) * creature.speed;
     creature.y += Math.sin(angle) * creature.speed;
-    
-    // If close enough, consume
+
+    // Eat if close
     if (Math.hypot(dx, dy) < creature.size) {
       creature.energy += nearestFood.energy;
       food.splice(food.indexOf(nearestFood), 1);
     }
   } else {
-    wanderDirection(creature);
+    // Wander — keeps things lively
+    creature.direction += (Math.random() - 0.5) * 0.4;
     creature.x += Math.cos(creature.direction) * creature.speed;
     creature.y += Math.sin(creature.direction) * creature.speed;
   }
 
-  // Survival and growth
-  creature.age += 1;
-  if (creature.energy > 50) {
-    creature.size += 0.2;
-    creature.speed += 0.05;
-    creature.energy -= 25;
+  // Decay over time — must keep eating
+  creature.energy -= 0.05;
+  creature.age++;
+
+  if (creature.energy <= 0) {
+    creatures.splice(creatures.indexOf(creature), 1); // RIP
   }
 }
 
@@ -306,16 +308,16 @@ function applyRepulsion(creature) {
   }
 }  
 
-function spawnFood(numItems) {
-  for (let i = 0; i < numItems; i++) {
+function spawnFood(count) {
+  for (let i = 0; i < count; i++) {
     food.push({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      size: 4 + Math.random() * 4, // optional: some variety
       energy: 10 + Math.random() * 5
     });
   }
 }
+
 
 function checkInteractions(creature) {
   if (creature.interactionCooldown > 0) {
