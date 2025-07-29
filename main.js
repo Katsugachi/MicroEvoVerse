@@ -307,18 +307,41 @@ function applyRepulsion(creature) {
 }  
 
 function checkInteractions(creature) {
+  if (creature.interactionCooldown > 0) {
+    creature.interactionCooldown--;
+    return;
+  }
+
   for (const other of creatures) {
+    if (creature === other || other.isInteracting) continue;
     const dx = other.x - creature.x;
     const dy = other.y - creature.y;
     const dist = Math.hypot(dx, dy);
-    if (dist < 60 && Math.random() < 0.01) {
-      // Example: exchange emotion or reproduce
-      creature.emotion = "hopeful";
-      other.emotion = "hopeful";
+    if (dist < 60 && Math.random() < 0.02) {
+      creature.isInteracting = true;
+      other.isInteracting = true;
+
+      creature.emotion = "excited";
+      other.emotion = "excited";
+
+      creature.interactionCooldown = 30;
+      other.interactionCooldown = 30;
+
+      // Optional: slight bounce away
+      creature.x -= dx * 0.1;
+      creature.y -= dy * 0.1;
     }
   }
+
+  if (creature.interactionCooldown === 0) {
+    creature.isInteracting = false;
+    if (creature.interactionCooldown === 0 && creature.isInteracting === true) {
+  creature.speed += 0.5;
+  creature.isInteracting = false;
 }
 
+  }
+}
 function drawSimulation() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   creatures.forEach(c => {
