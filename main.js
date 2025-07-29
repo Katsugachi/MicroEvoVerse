@@ -305,6 +305,20 @@ function applyRepulsion(creature) {
     }
   }
 }  
+
+function checkInteractions(creature) {
+  for (const other of creatures) {
+    const dx = other.x - creature.x;
+    const dy = other.y - creature.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 60 && Math.random() < 0.01) {
+      // Example: exchange emotion or reproduce
+      creature.emotion = "hopeful";
+      other.emotion = "hopeful";
+    }
+  }
+}
+
 function drawSimulation() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   creatures.forEach(c => {
