@@ -85,10 +85,12 @@ class Creature {
   }
 
   mutate() {
-    this.size += (Math.random() - 0.5);
-    this.speed += (Math.random() - 0.5) * 0.1;
-    this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
-  }
+  this.size += (Math.random() - 0.5);
+  this.size = Math.max(1, this.size); // Prevent negative or too-small radius
+  this.speed += (Math.random() - 0.5) * 0.1;
+  this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+}
+
 
   draw() {
     ctx.beginPath();
