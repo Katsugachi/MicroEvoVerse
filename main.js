@@ -285,6 +285,16 @@ function avgTrait(key) {
   return parseFloat((total / creatures.length).toFixed(2));
 }
 
+function applyRepulsion(creature) {
+  for (const other of creatures) {
+    if (creature === other) continue;
+    const dx = creature.x - other.x;
+    const dy = creature.y - other.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 40) {
+      creature.x += dx * 0.02;
+      creature.y += dy * 0.02;
+    }
 function drawSimulation() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   creatures.forEach(c => {
