@@ -1,0 +1,13 @@
+/* style.css */
+body {
+  background-color: #101010;
+  color: #00ffcc;
+  font-family: monospace;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+canvas {
+  border: 2px solid #00ffcc;
+  margin-top: 10px;
+}
