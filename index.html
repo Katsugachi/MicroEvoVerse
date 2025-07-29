@@ -1,14 +1,15 @@
-<!-- index.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>MicroEvoVerse</title>
-  <link rel="stylesheet" href="style.css">
-</head>
 <body>
   <h1>🌿 MicroEvoVerse: Evolution Simulator</h1>
+
+  <div id="controls">
+    <button id="toggle">⏯️ Pause</button>
+    <label>Mutation Rate: 
+      <input type="range" id="mutateSlider" min="0" max="0.02" step="0.001" value="0.005">
+    </label>
+    <button id="respawn">🔄 Respawn</button>
+    <p id="stats">Season: 🌱 | Weather: ☀️ | Creatures: 0</p>
+  </div>
+
   <canvas id="ecosystem" width="800" height="600"></canvas>
   <script src="main.js"></script>
 </body>
-</html>
