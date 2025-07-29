@@ -3,43 +3,64 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🌿 MicroEvoVerse: Evolution Simulator</title>
+  <title>MicroEvoVerse – Simulation</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="favicon.ico" type="image/x-icon" />
-  <meta name="theme-color" content="#101820" />
 </head>
 <body>
-  <h1>🌿 MicroEvoVerse: Evolution Simulator</h1>
+  <header>
+    <h1>🌿 MicroEvoVerse</h1>
+    <nav>
+      <button onclick="window.location.href='graphs.html'">📈 View Graphs</button>
+    </nav>
+  </header>
 
-  <div id="controls">
-    <button id="startSim">▶️ Start Simulation</button>
-    <button id="toggle">⏯️ Pause</button>
-    <button id="respawn">🔄 Respawn</button>
+  <main>
+    <canvas id="simulationCanvas" width="800" height="600">
+      Your browser doesn’t support canvas. Try a modern one!
+    </canvas>
 
-    <label>
-      Mutation Rate:
-      <input type="range" id="mutateSlider" min="0" max="0.02" step="0.001" value="0.005" />
-    </label>
-    <label>
-      Season Frequency:
-      <input type="range" id="seasonSpeed" min="100" max="2000" step="100" value="600" />
-    </label>
-    <label>
-      Weather Chaos:
-      <input type="range" id="weatherChaos" min="0" max="4" step="1" value="2" />
-    </label>
-    <label>
-      Creature Count:
-      <input type="number" id="creatureCount" min="10" max="500" value="100" />
-    </label>
+    <section id="simulationControls">
+      <h2>🎮 Controls</h2>
+      <button onclick="startSimulation()">Start</button>
+      <button onclick="pauseSimulation()">Pause</button>
+      <button onclick="resetSimulation()">Reset</button>
+    </section>
 
-    <p id="stats">Season: 🌱 | Weather: ☀️ | Creatures: 0</p>
-  </div>
+    <section id="simulationConfig">
+      <h2>⚙️ Configuration</h2>
 
-  <canvas id="ecosystem" width="800" height="600"></canvas>
+      <label for="mutationSlider">Mutation Rate:
+        <input type="range" id="mutationSlider" min="0" max="0.2" step="0.01" value="0.05">
+        <span id="mutationDisplay">0.05</span>
+      </label>
 
-  <noscript>Please enable JavaScript to run MicroEvoVerse.</noscript>
+      <label for="seasonSlider">Season Frequency (ticks):
+        <input type="range" id="seasonSlider" min="200" max="2400" step="100" value="1200">
+        <span id="seasonDisplay">1200</span>
+      </label>
+
+      <label for="seasonRateSlider">Season Rate (speed):
+        <input type="range" id="seasonRateSlider" min="1" max="10" step="1" value="5">
+        <span id="seasonRateDisplay">5</span>
+      </label>
+    </section>
+
+    <section id="simulationStats">
+      <h2>📊 Simulation Stats</h2>
+      <ul>
+        <li><strong>Current Season:</strong> <span id="currentSeason">Spring</span></li>
+        <li><strong>Creature Count:</strong> <span id="creatureCount">0</span></li>
+        <li><strong>Food Level:</strong> <span id="foodLevel">0</span></li>
+        <li><strong>Births:</strong> <span id="birthCount">0</span></li>
+        <li><strong>Deaths:</strong> <span id="deathCount">0</span></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>Created by Solus • Intelligent Evolving Ecosystems</p>
+  </footer>
+
   <script src="main.js"></script>
 </body>
 </html>
-
