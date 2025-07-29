@@ -68,6 +68,11 @@ function resetSimulation() {
   updateStats();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
+function updateCreatures() {
+  for (const creature of creatures) {
+    updateCreature(creature);
+  }
+}
 
 function simulationLoop() {
   if (!isRunning) return;
@@ -127,7 +132,7 @@ function averageTrait(a, b, key) {
   return Math.max(1, value);
 }
 
-function updateCreatures(creature) {
+function updateCreature(creature) {
   const nearestFood = findNearestFood(creature);
 
   if (nearestFood) {
