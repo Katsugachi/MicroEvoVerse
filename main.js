@@ -1,347 +1,151 @@
-let creatures = [];
-let isRunning = false;
-let mutationRate = 0.05;
-let seasonFrequency = 1200;
-let seasonRate = 5;
+const canvas = document.getElementById("ecosystem");
+const ctx = canvas.getContext("2d");
 
-let birthCount = 0;
-let deathCount = 0;
-let foodLevel = 200;
-let currentSeason = "Spring";
-let tick = 0;
+let paused = true;
+let mutationRate = 0.005;
+let seasonFrequency = 600;
+let weatherChaos = 2;
+let creatureCount = 100;
+let cycle = 0;
+let season = 0;
+let weather = 'clear';
 
-const seasonNames = ["Spring", "Summer", "Autumn", "Winter"];
-let food = [];
+const statsEl = document.getElementById('stats');
 
-window.onload = () => {
-  const canvas = document.getElementById("simulationCanvas");
-  const ctx = canvas.getContext("2d");
-
-  const creatureCountEl = document.getElementById("creatureCount");
-  const mutationSlider = document.getElementById("mutationSlider");
-  const seasonSlider = document.getElementById("seasonSlider");
-  const seasonRateSlider = document.getElementById("seasonRateSlider");
-
-  const mutationDisplay = document.getElementById("mutationDisplay");
-  const seasonDisplay = document.getElementById("seasonDisplay");
-  const seasonRateDisplay = document.getElementById("seasonRateDisplay");
-
-  const currentSeasonEl = document.getElementById("currentSeason");
-  const birthEl = document.getElementById("birthCount");
-  const deathEl = document.getElementById("deathCount");
-  const foodEl = document.getElementById("foodLevel");
-
-  const govTypeEl = document.getElementById("governmentType");
-  const leaderCountEl = document.getElementById("leaderCount");
-  const workerCountEl = document.getElementById("workerCount");
-  const eliteCountEl = document.getElementById("eliteCount");
-
-  mutationSlider.addEventListener("input", () => {
-    mutationRate = parseFloat(mutationSlider.value);
-    mutationDisplay.textContent = mutationRate.toFixed(2);
-  });
-
-  seasonSlider.addEventListener("input", () => {
-    seasonFrequency = parseInt(seasonSlider.value);
-    seasonDisplay.textContent = seasonFrequency;
-  });
-
-  seasonRateSlider.addEventListener("input", () => {
-    seasonRate = parseInt(seasonRateSlider.value);
-    seasonRateDisplay.textContent = seasonRate;
-  });
-
-  document.getElementById("startBtn").addEventListener("click", () => {
-    if (!isRunning) {
-      isRunning = true;
-      requestAnimationFrame(simulationLoop);
-    }
-  });
-
-  document.getElementById("stopBtn").addEventListener("click", () => {
-    isRunning = false;
-  });
-
-  document.getElementById("resetBtn").addEventListener("click", () => {
-    isRunning = false;
-    tick = 0;
-    birthCount = 0;
-    deathCount = 0;
-    foodLevel = 200;
-    creatures = [];
-    food = [];
-    updateStats();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  });
-
-  function simulationLoop() {
-    if (!isRunning) return;
-
-    tick++;
-    if (tick % Math.floor(seasonFrequency / seasonRate) === 0) changeSeason();
-
-    updateCreatures();
-    assignGovernments();
-    updateStats();
-    drawSimulation();
-    updateSharedStats();
-    spawnFood(1);
-
-    requestAnimationFrame(simulationLoop);
-  }
-
-  function changeSeason() {
-    const i = seasonNames.indexOf(currentSeason);
-    currentSeason = seasonNames[(i + 1) % seasonNames.length];
-    currentSeasonEl.textContent = currentSeason;
-  }
-
-  function spawnFood(count) {
-    for (let i = 0; i < count; i++) {
-      food.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        energy: 10 + Math.random() * 5
-      });
-    }
-  }
-
-  function updateStats() {
-    creatureCountEl.textContent = creatures.length;
-    birthEl.textContent = birthCount;
-    deathEl.textContent = deathCount;
-    foodEl.textContent = Math.max(0, Math.round(foodLevel));
-  }
-
-  function updateSharedStats() {
-    const liveTraits = {
-      population: creatures.length,
-      speed: avgTrait("speed"),
-      size: avgTrait("size"),
-      lifespan: avgTrait("lifespan"),
-      sense: avgTrait("sense"),
-      mutationRate,
-      season: currentSeason,
-      births: birthCount,
-      deaths: deathCount,
-      food: Math.max(0, Math.round(foodLevel))
-    };
-    localStorage.setItem("microEvoStats", JSON.stringify(liveTraits));
-  }
-
-  function avgTrait(key) {
-    if (creatures.length === 0) return 0;
-    const total = creatures.reduce((sum, c) => sum + (c[key] || 0), 0);
-    return parseFloat((total / creatures.length).toFixed(2));
-  }
-
-  function assignGovernments() {
-    const elite = [];
-    const leaders = [];
-    const workers = [];
-
-    creatures.forEach(c => {
-      if (c.size > 8 && c.speed < 3) {
-        c.socialClass = "leader";
-        c.government = "democratic";
-        leaders.push(c);
-      } else if (c.speed > 4) {
-        c.socialClass = "elite";
-        c.government = "tribal";
-        elite.push(c);
-      } else {
-        c.socialClass = "worker";
-        c.government = "tribal";
-        workers.push(c);
-      }
-    });
-
-    govTypeEl.textContent = dominantGovernment();
-    leaderCountEl.textContent = leaders.length;
-    workerCountEl.textContent = workers.length;
-    eliteCountEl.textContent = elite.length;
-  }
-
-  function dominantGovernment() {
-    const counts = { tribal: 0, democratic: 0, authoritarian: 0 };
-    creatures.forEach(c => counts[c.government]++);
-    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
-  }
-
-  // Part 2 continues immediately below...
+document.getElementById("startSim").onclick = () => {
+  paused = false;
+  tick();
 };
-  function createCreature(parentA = null, parentB = null) {
-    const base = {
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      speed: 2 + Math.random() * 3,
-      size: 5 + Math.random() * 5,
-      lifespan: 1000 + Math.random() * 2000,
-      sense: 50 + Math.random() * 100
-    };
 
-    if (parentA && parentB) {
-      base.speed = averageTrait(parentA.speed, parentB.speed);
-      base.size = averageTrait(parentA.size, parentB.size);
-      base.lifespan = averageTrait(parentA.lifespan, parentB.lifespan);
-      base.sense = averageTrait(parentA.sense, parentB.sense);
-    }
+document.getElementById("toggle").onclick = () => paused = !paused;
+document.getElementById("mutateSlider").oninput = e => mutationRate = parseFloat(e.target.value);
+document.getElementById("seasonSpeed").oninput = e => seasonFrequency = parseInt(e.target.value);
+document.getElementById("weatherChaos").oninput = e => weatherChaos = parseInt(e.target.value);
+document.getElementById("creatureCount").oninput = e => {
+  creatureCount = parseInt(e.target.value);
+  creatures = Array.from({ length: creatureCount }, () => new Creature());
+};
+document.getElementById("respawn").onclick = () => {
+  creatures = Array.from({ length: creatureCount }, () => new Creature());
+};
 
-    return {
-      ...base,
-      age: 0,
-      energy: 20,
-      direction: Math.random() * 2 * Math.PI,
-      memory: [],
-      disposition: Math.random() < 0.5 ? "friendly" : "aggressive",
-      socialClass: "worker",
-      government: "tribal",
-      mate: null,
-      emotion: null,
-      isInteracting: false,
-      interactionCooldown: 0
-    };
+// 🧬 Intelligent Creature Class
+class Creature {
+  constructor() {
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
+    this.size = 4 + Math.random() * 4;
+    this.speed = 0.5 + Math.random();
+    this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+    this.goal = { x: Math.random() * canvas.width, y: Math.random() * canvas.height };
+    this.brain = { social: Math.random(), shy: Math.random() };
+    this.target = null;
   }
 
-  function averageTrait(a, b) {
-    let value = (a + b) / 2;
-    if (Math.random() < mutationRate) {
-      value += (Math.random() - 0.5) * value * 0.2;
-    }
-    return Math.max(1, value);
-  }
-
-  function updateCreature(creature) {
-    const nearestFood = findNearestFood(creature);
-    if (nearestFood) {
-      const dx = nearestFood.x - creature.x;
-      const dy = nearestFood.y - creature.y;
-      const angle = Math.atan2(dy, dx);
-      creature.x += Math.cos(angle) * creature.speed;
-      creature.y += Math.sin(angle) * creature.speed;
-      if (Math.hypot(dx, dy) < creature.size) {
-        creature.energy += nearestFood.energy;
-        food.splice(food.indexOf(nearestFood), 1);
-      }
-    } else {
-      creature.direction += (Math.random() - 0.5) * 0.4;
-      creature.x += Math.cos(creature.direction) * creature.speed;
-      creature.y += Math.sin(creature.direction) * creature.speed;
-    }
-
-    creature.energy -= 0.05;
-    creature.age++;
-    applyRepulsion(creature);
-    checkInteractions(creature);
-    tryMating(creature);
-
-    if (creature.energy <= 0 || creature.age >= creature.lifespan || creature.dead) {
-      creatures.splice(creatures.indexOf(creature), 1);
-      deathCount++;
-    }
-
-    if (creature.interactionCooldown > 0) {
-      creature.interactionCooldown--;
-    } else {
-      creature.isInteracting = false;
-      creature.emotion = null;
-    }
-  }
-
-  function updateCreatures() {
-    for (const creature of creatures) {
-      updateCreature(creature);
-    }
-  }
-
-  function tryMating(creature) {
-    if (creature.mate || creature.disposition === "aggressive") return;
-    const nearby = creatures.find(other =>
-      other !== creature &&
-      !other.mate &&
-      distance(creature, other) < creature.sense / 2 &&
-      Math.abs(creature.size - other.size) < 2
+  updateTarget(creatures) {
+    const nearby = creatures.filter(c =>
+      c !== this &&
+      Math.hypot(c.x - this.x, c.y - this.y) < 50
     );
-
-    if (nearby && Math.random() < 0.05) {
-      creature.mate = nearby;
-      nearby.mate = creature;
-      birthCount++;
-      creatures.push(createCreature(creature, nearby));
-      creature.memory.push({ tick, event: "mated", id: nearby.id });
-      nearby.memory.push({ tick, event: "mated", id: creature.id });
+    if (nearby.length && this.brain.social > 0.5) {
+      this.target = nearby[0];
+    } else if (nearby.length && this.brain.shy > 0.5) {
+      let dx = this.x - nearby[0].x;
+      let dy = this.y - nearby[0].y;
+      this.x += dx * 0.05;
+      this.y += dy * 0.05;
+    } else {
+      this.target = null;
     }
   }
 
-  function checkInteractions(creature) {
-    for (const other of creatures) {
-      if (creature === other || other.isInteracting) continue;
-      const dx = other.x - creature.x;
-      const dy = other.y - creature.y;
-      const dist = Math.hypot(dx, dy);
-      if (dist < 60 && Math.random() < 0.02) {
-        creature.isInteracting = true;
-        other.isInteracting = true;
-        creature.emotion = "excited";
-        other.emotion = "excited";
-        creature.interactionCooldown = 30;
-        other.interactionCooldown = 30;
-        creature.x -= dx * 0.1;
-        creature.y -= dy * 0.1;
-      }
+  move(creatures) {
+    this.updateTarget(creatures);
+    if (this.target) {
+      this.goal = { x: this.target.x, y: this.target.y };
+    } else if (Math.random() < 0.01) {
+      this.goal.x = Math.random() * canvas.width;
+      this.goal.y = Math.random() * canvas.height;
     }
-  }
 
-  function applyRepulsion(creature) {
-    for (const other of creatures) {
-      if (creature === other) continue;
-      const dx = creature.x - other.x;
-      const dy = creature.y - other.y;
-      const dist = Math.hypot(dx, dy);
-      if (dist < 40) {
-        creature.x += dx * 0.02;
-        creature.y += dy * 0.02;
-      }
+    let dx = this.goal.x - this.x;
+    let dy = this.goal.y - this.y;
+    let dist = Math.hypot(dx, dy);
+    if (dist > 1) {
+      let climateFactor = 1;
+      if (season === 3) climateFactor = 0.5;
+      if (weather === 'drought') climateFactor *= 0.7;
+      if (weather === 'windy') climateFactor *= 1.3;
+      this.x += (dx / dist) * this.speed * climateFactor;
+      this.y += (dy / dist) * this.speed * climateFactor;
     }
+
+    this.x = Math.max(0, Math.min(canvas.width, this.x));
+    this.y = Math.max(0, Math.min(canvas.height, this.y));
   }
 
-  function findNearestFood(creature) {
-    let closest = null;
-    let minDist = Infinity;
-    for (const f of food) {
-      const d = distance(creature, f);
-      if (d < creature.sense && d < minDist) {
-        minDist = d;
-        closest = f;
-      }
-    }
-    return closest;
+  mutate() {
+    this.size += (Math.random() - 0.5);
+    this.speed += (Math.random() - 0.5) * 0.1;
+    this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
   }
 
-  function distance(a, b) {
-    return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
   }
+}
 
-  function drawSimulation() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    creatures.forEach(c => {
-      if (c.socialClass === "leader") ctx.fillStyle = "gold";
-      else if (c.socialClass === "elite") ctx.fillStyle = "silver";
-      else ctx.fillStyle = "green";
+let creatures = Array.from({ length: creatureCount }, () => new Creature());
 
+function drawEnvironment() {
+  const seasonColors = ['#2e8b57', '#f4e664', '#c85d32', '#dfefff'];
+  ctx.fillStyle = seasonColors[season];
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle =
+    weather === 'rain' ? 'rgba(0,255,255,0.2)' :
+    weather === 'snow' ? 'rgba(255,255,255,0.2)' :
+    weather === 'clear' ? 'rgba(255,255,153,0.2)' : null;
+
+  if (ctx.fillStyle) {
+    for (let i = 0; i < 80; i++) {
+      let x = Math.random() * canvas.width;
+      let y = (cycle * 2 + i * 20) % canvas.height;
       ctx.beginPath();
-      ctx.arc(c.x, c.y, c.size, 0, 2 * Math.PI);
+      ctx.arc(x, y, weather === 'snow' ? 2 : 1, 0, Math.PI * 2);
       ctx.fill();
-
-      ctx.strokeStyle = "black";
-      ctx.beginPath();
-      ctx.moveTo(c.x, c.y);
-      ctx.lineTo(c.x + Math.cos(c.direction) * c.size * 2, c.y + Math.sin(c.direction) * c.size * 2);
-      ctx.stroke();
-    });
+    }
   }
+}
 
-  for (let i = 0; i < 30; i++) {
-    creatures.push(createCreature());
+function updateSeason(cycle) {
+  season = Math.floor((cycle / seasonFrequency) % 4);
+  const options = ['rain', 'clear', 'windy', 'drought', 'snow'];
+  const chaosShift = Math.floor(Math.sin(cycle / 100) * weatherChaos + weatherChaos);
+  weather = options[chaosShift % options.length];
+
+  const seasonIcons = ['🌱', '☀️', '🍂', '❄️'];
+  const weatherIcons = {
+    rain: '🌧️', clear: '☀️', windy: '💨', drought: '🔥', snow: '❄️'
+  };
+
+  statsEl.textContent = `Season: ${seasonIcons[season]} | Weather: ${weatherIcons[weather]} | Creatures: ${creatures.length}`;
+}
+
+function tick() {
+  if (!paused) {
+    cycle++;
+    updateSeason(cycle);
+    drawEnvironment();
+
+    for (let creature of creatures) {
+      creature.move(creatures);
+      if (Math.random() < mutationRate + 0.001 * season) creature.mutate();
+      creature.draw();
+    }
   }
-};
+  requestAnimationFrame(tick);
+}
