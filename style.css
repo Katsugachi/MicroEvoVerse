@@ -13,7 +13,12 @@ h1 {
 }
 
 #controls {
-  margin: 20px 0;
+  margin: 20px auto;
+  max-width: 800px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
 }
 
 button {
@@ -21,7 +26,6 @@ button {
   color: black;
   border: none;
   padding: 6px 12px;
-  margin: 0 6px;
   font-size: 1em;
   cursor: pointer;
   border-radius: 4px;
@@ -33,16 +37,15 @@ button:hover {
 }
 
 label {
-  margin-left: 12px;
-  font-size: 1em;
+  font-size: 0.95em;
 }
 
-input[type="range"] {
-  width: 120px;
+input[type="range"], input[type="number"] {
   vertical-align: middle;
 }
 
 #stats {
+  width: 100%;
   margin-top: 10px;
   font-size: 1.1em;
 }
