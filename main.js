@@ -306,6 +306,17 @@ function applyRepulsion(creature) {
   }
 }  
 
+function spawnFood(numItems) {
+  for (let i = 0; i < numItems; i++) {
+    food.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: 4 + Math.random() * 4, // optional: some variety
+      energy: 10 + Math.random() * 5
+    });
+  }
+}
+
 function checkInteractions(creature) {
   if (creature.interactionCooldown > 0) {
     creature.interactionCooldown--;
