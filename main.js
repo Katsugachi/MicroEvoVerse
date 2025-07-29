@@ -68,11 +68,16 @@ function resetSimulation() {
   updateStats();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
+function updateCreature(creature) {
+  // handles movement, eating, dying, growing
+}
+
 function updateCreatures() {
-  for (const creature of creatures) {
-    updateCreature(creature);
+  for (const c of creatures) {
+    updateCreature(c);
   }
 }
+
 
 function simulationLoop() {
   if (!isRunning) return;
