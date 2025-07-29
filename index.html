@@ -1,53 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>MicroEvo Simulation</title>
-  <style>
-    canvas { border: 1px solid #333; display: block; margin: 20px auto; }
-    .controls, .stats { text-align: center; margin-top: 10px; }
-    .sliders { display: flex; justify-content: center; gap: 20px; margin-top: 10px; }
-    input[type=range] { width: 150px; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌿 MicroEvoVerse: Evolution Simulator</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <meta name="theme-color" content="#101820" />
 </head>
 <body>
+  <h1>🌿 MicroEvoVerse: Evolution Simulator</h1>
 
-<canvas id="simulationCanvas" width="800" height="600"></canvas>
+  <div id="controls">
+    <button id="startSim">▶️ Start Simulation</button>
+    <button id="toggle">⏯️ Pause</button>
+    <button id="respawn">🔄 Respawn</button>
 
-<div class="controls">
-  <button id="startBtn">Start</button>
-  <button id="stopBtn">Pause</button>
-  <button id="resetBtn">Reset</button>
-</div>
+    <label>
+      Mutation Rate:
+      <input type="range" id="mutateSlider" min="0" max="0.02" step="0.001" value="0.005" />
+    </label>
+    <label>
+      Season Frequency:
+      <input type="range" id="seasonSpeed" min="100" max="2000" step="100" value="600" />
+    </label>
+    <label>
+      Weather Chaos:
+      <input type="range" id="weatherChaos" min="0" max="4" step="1" value="2" />
+    </label>
+    <label>
+      Creature Count:
+      <input type="number" id="creatureCount" min="10" max="500" value="100" />
+    </label>
 
-<div class="sliders">
-  <div>
-    <label>Mutation Rate: <span id="mutationDisplay">0.05</span></label><br>
-    <input type="range" id="mutationSlider" min="0" max="1" step="0.01" value="0.05">
+    <p id="stats">Season: 🌱 | Weather: ☀️ | Creatures: 0</p>
   </div>
-  <div>
-    <label>Season Frequency: <span id="seasonDisplay">1200</span></label><br>
-    <input type="range" id="seasonSlider" min="100" max="2000" step="100" value="1200">
-  </div>
-  <div>
-    <label>Season Rate: <span id="seasonRateDisplay">5</span></label><br>
-    <input type="range" id="seasonRateSlider" min="1" max="10" step="1" value="5">
-  </div>
-</div>
 
-<div class="stats">
-  <p>Season: <span id="currentSeason">Spring</span></p>
-  <p>Creatures: <span id="creatureCount">0</span></p>
-  <p>Births: <span id="birthCount">0</span></p>
-  <p>Deaths: <span id="deathCount">0</span></p>
-  <p>Food Level: <span id="foodLevel">200</span></p>
-  <p>Government: <span id="governmentType">tribal</span></p>
-  <p>Leaders: <span id="leaderCount">0</span></p>
-  <p>Workers: <span id="workerCount">0</span></p>
-  <p>Elites: <span id="eliteCount">0</span></p>
-</div>
+  <canvas id="ecosystem" width="800" height="600"></canvas>
 
-<script src="main.js"></script>
+  <noscript>Please enable JavaScript to run MicroEvoVerse.</noscript>
+  <script src="main.js"></script>
 </body>
 </html>
-
