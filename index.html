@@ -4,40 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🌿 MicroEvoVerse: Evolution Simulator</title>
-  <style>
-    body {
-      background-color: #101820;
-      color: #00ffcc;
-      font-family: 'Segoe UI', sans-serif;
-      text-align: center;
-    }
-    #controls {
-      margin: 15px;
-    }
-    button {
-      background-color: #00ffcc;
-      color: black;
-      border: none;
-      padding: 5px 10px;
-      margin: 0 5px;
-      cursor: pointer;
-    }
-    label {
-      margin-left: 10px;
-    }
-    input[type="range"] {
-      width: 100px;
-    }
-    canvas {
-      border: 2px solid #00ffcc;
-      margin-top: 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <h1>🌿 MicroEvoVerse: Evolution Simulator</h1>
 
   <div id="controls">
+    <button id="startSim">▶️ Start Simulation</button>
     <button id="toggle">⏯️ Pause</button>
     <label>
       Mutation Rate:
@@ -52,4 +25,3 @@
   <script src="main.js"></script>
 </body>
 </html>
-
