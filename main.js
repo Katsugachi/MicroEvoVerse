@@ -11,7 +11,6 @@ let currentSeason = "Spring";
 let tick = 0;
 
 const seasonNames = ["Spring", "Summer", "Autumn", "Winter"];
-
 const canvas = document.getElementById("simulationCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -34,6 +33,8 @@ const leaderCountEl = document.getElementById("leaderCount");
 const workerCountEl = document.getElementById("workerCount");
 const eliteCountEl = document.getElementById("eliteCount");
 
+let food = [];
+
 mutationSlider.addEventListener("input", () => {
   mutationRate = parseFloat(mutationSlider.value);
   mutationDisplay.textContent = mutationRate.toFixed(2);
@@ -46,6 +47,10 @@ seasonRateSlider.addEventListener("input", () => {
   seasonRate = parseInt(seasonRateSlider.value);
   seasonRateDisplay.textContent = seasonRate;
 });
+
+document.getElementById("startBtn").addEventListener("click", startSimulation);
+document.getElementById("stopBtn").addEventListener("click", pauseSimulation);
+document.getElementById("resetBtn").addEventListener("click", resetSimulation);
 
 function startSimulation() {
   if (!isRunning) {
@@ -65,46 +70,9 @@ function resetSimulation() {
   deathCount = 0;
   foodLevel = 200;
   creatures = [];
+  food = [];
   updateStats();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-function updateCreature(creature) {
-  const nearestFood = findNearestFood(creature);
-
-  if (nearestFood) {
-    const dx = nearestFood.x - creature.x;
-    const dy = nearestFood.y - creature.y;
-    const angle = Math.atan2(dy, dx);
-
-    // Move toward food
-    creature.x += Math.cos(angle) * creature.speed;
-    creature.y += Math.sin(angle) * creature.speed;
-
-    // Eat if close
-    if (Math.hypot(dx, dy) < creature.size) {
-      creature.energy += nearestFood.energy;
-      food.splice(food.indexOf(nearestFood), 1);
-    }
-  } else {
-    // Wander — keeps things lively
-    creature.direction += (Math.random() - 0.5) * 0.4;
-    creature.x += Math.cos(creature.direction) * creature.speed;
-    creature.y += Math.sin(creature.direction) * creature.speed;
-  }
-
-  // Decay over time — must keep eating
-  creature.energy -= 0.05;
-  creature.age++;
-
-  if (creature.energy <= 0) {
-    creatures.splice(creatures.indexOf(creature), 1); // RIP
-  }
-}
-
-function updateCreatures() {
-  for (const creature of creatures) {
-    updateCreature(creature);
-  }
 }
 
 function simulationLoop() {
@@ -118,6 +86,7 @@ function simulationLoop() {
   updateStats();
   drawSimulation();
   updateSharedStats();
+  spawnFood(1);
 
   requestAnimationFrame(simulationLoop);
 }
@@ -127,7 +96,6 @@ function changeSeason() {
   currentSeason = seasonNames[(i + 1) % seasonNames.length];
   currentSeasonEl.textContent = currentSeason;
 }
-
 function createCreature(parentA = null, parentB = null) {
   const base = {
     x: Math.random() * canvas.width,
@@ -148,12 +116,16 @@ function createCreature(parentA = null, parentB = null) {
   return {
     ...base,
     age: 0,
+    energy: 20,
     direction: Math.random() * 2 * Math.PI,
     memory: [],
     disposition: Math.random() < 0.5 ? "friendly" : "aggressive",
     socialClass: "worker",
     government: "tribal",
-    mate: null
+    mate: null,
+    emotion: null,
+    isInteracting: false,
+    interactionCooldown: 0
   };
 }
 
@@ -165,28 +137,41 @@ function averageTrait(a, b, key) {
   return Math.max(1, value);
 }
 
-function findTarget(creature) {
-  let nearby = creatures.filter(other => {
-    if (other === creature || other.dead) return false;
-    return distance(creature, other) < creature.sense;
-  });
+function updateCreature(creature) {
+  const nearestFood = findNearestFood(creature);
+  if (nearestFood) {
+    const dx = nearestFood.x - creature.x;
+    const dy = nearestFood.y - creature.y;
+    const angle = Math.atan2(dy, dx);
+    creature.x += Math.cos(angle) * creature.speed;
+    creature.y += Math.sin(angle) * creature.speed;
+    if (Math.hypot(dx, dy) < creature.size) {
+      creature.energy += nearestFood.energy;
+      food.splice(food.indexOf(nearestFood), 1);
+    }
+  } else {
+    creature.direction += (Math.random() - 0.5) * 0.4;
+    creature.x += Math.cos(creature.direction) * creature.speed;
+    creature.y += Math.sin(creature.direction) * creature.speed;
+  }
 
-  let mate = nearby.find(o => canMate(creature, o));
-  if (mate) return mate;
+  creature.energy -= 0.05;
+  creature.age++;
+  applyRepulsion(creature);
+  checkInteractions(creature);
+  tryMating(creature);
 
-  let leader = nearby.find(o => o.socialClass === "leader");
-  if (leader) return leader;
+  if (creature.energy <= 0 || creature.age >= creature.lifespan || creature.dead) {
+    creatures.splice(creatures.indexOf(creature), 1);
+    deathCount++;
+  }
 
-  if (foodLevel > 0) return { x: canvas.width / 2, y: canvas.height / 2 };
-
-  return null;
-}
-
-function canMate(a, b) {
-  return !a.mate && !b.mate &&
-         a.disposition === "friendly" &&
-         Math.abs(a.size - b.size) < 2 &&
-         Math.abs(a.speed - b.speed) < 2;
+  if (creature.interactionCooldown > 0) {
+    creature.interactionCooldown--;
+  } else {
+    creature.isInteracting = false;
+    creature.emotion = null;
+  }
 }
 
 function tryMating(creature) {
@@ -202,7 +187,6 @@ function tryMating(creature) {
   if (nearby && Math.random() < 0.05) {
     creature.mate = nearby;
     nearby.mate = creature;
-
     birthCount++;
     creatures.push(createCreature(creature, nearby));
     creature.memory.push({ tick, event: "mated", id: nearby.id });
@@ -212,6 +196,19 @@ function tryMating(creature) {
 
 function distance(a, b) {
   return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+}
+
+function findNearestFood(creature) {
+  let closest = null;
+  let minDist = Infinity;
+  for (const f of food) {
+    const d = distance(creature, f);
+    if (d < creature.sense && d < minDist) {
+      minDist = d;
+      closest = f;
+    }
+  }
+  return closest;
 }
 
 function assignGovernments() {
@@ -247,18 +244,10 @@ function dominantGovernment() {
   return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
 }
 
-function triggerDisaster(type) {
-  creatures.forEach(c => {
-    if (type === "fire" && c.size < 7) c.lifespan -= 300;
-    else if (type === "quake") {
-      c.x += Math.random() * 30 - 15;
-      c.y += Math.random() * 30 - 15;
-    } else if (type === "flood" && c.speed < 3) c.dead = true;
-    else if (type === "drought") foodLevel -= 50;
-    else if (type === "plague") {
-      if (Math.random() < 0.2) c.dead = true;
-    }
-  });
+function updateCreatures() {
+  for (const creature of creatures) {
+    updateCreature(creature);
+  }
 }
 
 function updateStats() {
@@ -281,7 +270,6 @@ function updateSharedStats() {
     deaths: deathCount,
     food: Math.max(0, Math.round(foodLevel))
   };
-
   localStorage.setItem("microEvoStats", JSON.stringify(liveTraits));
 }
 
@@ -289,14 +277,6 @@ function avgTrait(key) {
   if (creatures.length === 0) return 0;
   const total = creatures.reduce((sum, c) => sum + (c[key] || 0), 0);
   return parseFloat((total / creatures.length).toFixed(2));
-}
-
-function evolveCreature(creature) {
-  if (tick % 500 === 0) {
-    creature.speed += 0.1;
-    creature.stealth += 0.1;
-    // Maybe shift government preference or language lexicon
-  }
 }
 
 function applyRepulsion(creature) {
@@ -310,7 +290,7 @@ function applyRepulsion(creature) {
       creature.y += dy * 0.02;
     }
   }
-}  
+}
 
 function spawnFood(count) {
   for (let i = 0; i < count; i++) {
@@ -322,13 +302,7 @@ function spawnFood(count) {
   }
 }
 
-
 function checkInteractions(creature) {
-  if (creature.interactionCooldown > 0) {
-    creature.interactionCooldown--;
-    return;
-  }
-
   for (const other of creatures) {
     if (creature === other || other.isInteracting) continue;
     const dx = other.x - creature.x;
@@ -337,28 +311,16 @@ function checkInteractions(creature) {
     if (dist < 60 && Math.random() < 0.02) {
       creature.isInteracting = true;
       other.isInteracting = true;
-
       creature.emotion = "excited";
       other.emotion = "excited";
-
       creature.interactionCooldown = 30;
       other.interactionCooldown = 30;
-
-      // Optional: slight bounce away
       creature.x -= dx * 0.1;
       creature.y -= dy * 0.1;
     }
   }
-
-  if (creature.interactionCooldown === 0) {
-    creature.isInteracting = false;
-    if (creature.interactionCooldown === 0 && creature.isInteracting === true) {
-  creature.speed += 0.5;
-  creature.isInteracting = false;
 }
 
-  }
-}
 function drawSimulation() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   creatures.forEach(c => {
@@ -370,7 +332,6 @@ function drawSimulation() {
     ctx.arc(c.x, c.y, c.size, 0, 2 * Math.PI);
     ctx.fill();
 
-    // Optional direction line
     ctx.strokeStyle = "black";
     ctx.beginPath();
     ctx.moveTo(c.x, c.y);
