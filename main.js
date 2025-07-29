@@ -69,15 +69,43 @@ function resetSimulation() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 function updateCreature(creature) {
-  // handles movement, eating, dying, growing
-}
+  const nearestFood = findNearestFood(creature);
 
-function updateCreatures() {
-  for (const c of creatures) {
-    updateCreature(c);
+  if (nearestFood) {
+    const dx = nearestFood.x - creature.x;
+    const dy = nearestFood.y - creature.y;
+    const angle = Math.atan2(dy, dx);
+
+    // Move toward food
+    creature.x += Math.cos(angle) * creature.speed;
+    creature.y += Math.sin(angle) * creature.speed;
+
+    // Eat if close
+    if (Math.hypot(dx, dy) < creature.size) {
+      creature.energy += nearestFood.energy;
+      food.splice(food.indexOf(nearestFood), 1);
+    }
+  } else {
+    // Wander — keeps things lively
+    creature.direction += (Math.random() - 0.5) * 0.4;
+    creature.x += Math.cos(creature.direction) * creature.speed;
+    creature.y += Math.sin(creature.direction) * creature.speed;
+  }
+
+  // Decay over time — must keep eating
+  creature.energy -= 0.05;
+  creature.age++;
+
+  if (creature.energy <= 0) {
+    creatures.splice(creatures.indexOf(creature), 1); // RIP
   }
 }
 
+function updateCreatures() {
+  for (const creature of creatures) {
+    updateCreature(creature);
+  }
+}
 
 function simulationLoop() {
   if (!isRunning) return;
@@ -136,40 +164,6 @@ function averageTrait(a, b, key) {
   }
   return Math.max(1, value);
 }
-
-function updateCreature(creature) {
-  const nearestFood = findNearestFood(creature);
-
-  if (nearestFood) {
-    const dx = nearestFood.x - creature.x;
-    const dy = nearestFood.y - creature.y;
-    const angle = Math.atan2(dy, dx);
-
-    // Move toward food
-    creature.x += Math.cos(angle) * creature.speed;
-    creature.y += Math.sin(angle) * creature.speed;
-
-    // Eat if close
-    if (Math.hypot(dx, dy) < creature.size) {
-      creature.energy += nearestFood.energy;
-      food.splice(food.indexOf(nearestFood), 1);
-    }
-  } else {
-    // Wander — keeps things lively
-    creature.direction += (Math.random() - 0.5) * 0.4;
-    creature.x += Math.cos(creature.direction) * creature.speed;
-    creature.y += Math.sin(creature.direction) * creature.speed;
-  }
-
-  // Decay over time — must keep eating
-  creature.energy -= 0.05;
-  creature.age++;
-
-  if (creature.energy <= 0) {
-    creatures.splice(creatures.indexOf(creature), 1); // RIP
-  }
-}
-
 
 function findTarget(creature) {
   let nearby = creatures.filter(other => {
