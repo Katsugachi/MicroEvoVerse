@@ -100,7 +100,6 @@ class Creature {
 
 let creatures = Array.from({ length: creatureCount }, () => new Creature());
 
-// 🌦️ Terrain & Weather Particles
 function drawEnvironment() {
   const seasonColors = ['#2e8b57', '#f4e664', '#c85d32', '#dfefff'];
   ctx.fillStyle = seasonColors[season];
@@ -122,9 +121,31 @@ function drawEnvironment() {
   }
 }
 
-// 🔄 Update Season & Weather
 function updateSeason(cycle) {
   season = Math.floor((cycle / seasonFrequency) % 4);
   const options = ['rain', 'clear', 'windy', 'drought', 'snow'];
   const chaosShift = Math.floor(Math.sin(cycle / 100) * weatherChaos + weatherChaos);
-  weather = options[chaosShift %
+  weather = options[chaosShift % options.length];
+
+  const seasonIcons = ['🌱', '☀️', '🍂', '❄️'];
+  const weatherIcons = {
+    rain: '🌧️', clear: '☀️', windy: '💨', drought: '🔥', snow: '❄️'
+  };
+
+  statsEl.textContent = `Season: ${seasonIcons[season]} | Weather: ${weatherIcons[weather]} | Creatures: ${creatures.length}`;
+}
+
+function tick() {
+  if (!paused) {
+    cycle++;
+    updateSeason(cycle);
+    drawEnvironment();
+
+    for (let creature of creatures) {
+      creature.move(creatures);
+      if (Math.random() < mutationRate + 0.001 * season) creature.mutate();
+      creature.draw();
+    }
+  }
+  requestAnimationFrame(tick);
+}
