@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🌿 MicroEvoVerse: Evolution Simulator</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <meta name="theme-color" content="#101820" />
 </head>
 <body>
   <h1>🌿 MicroEvoVerse: Evolution Simulator</h1>
@@ -12,16 +14,32 @@
   <div id="controls">
     <button id="startSim">▶️ Start Simulation</button>
     <button id="toggle">⏯️ Pause</button>
+    <button id="respawn">🔄 Respawn</button>
+
     <label>
       Mutation Rate:
       <input type="range" id="mutateSlider" min="0" max="0.02" step="0.001" value="0.005" />
     </label>
-    <button id="respawn">🔄 Respawn</button>
+    <label>
+      Season Frequency:
+      <input type="range" id="seasonSpeed" min="100" max="2000" step="100" value="600" />
+    </label>
+    <label>
+      Weather Chaos:
+      <input type="range" id="weatherChaos" min="0" max="4" step="1" value="2" />
+    </label>
+    <label>
+      Creature Count:
+      <input type="number" id="creatureCount" min="10" max="500" value="100" />
+    </label>
+
     <p id="stats">Season: 🌱 | Weather: ☀️ | Creatures: 0</p>
   </div>
 
   <canvas id="ecosystem" width="800" height="600"></canvas>
 
+  <noscript>Please enable JavaScript to run MicroEvoVerse.</noscript>
   <script src="main.js"></script>
 </body>
 </html>
+
