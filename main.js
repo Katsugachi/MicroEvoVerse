@@ -127,37 +127,37 @@ function averageTrait(a, b, key) {
   return Math.max(1, value);
 }
 
-function updateCreatures() {
-  if (creatures.length < 30) creatures.push(createCreature());
-
-  creatures.forEach(c => {
-    c.age += 1;
-    if (c.age > c.lifespan) {
-      c.dead = true;
-      deathCount++;
-      return;
+function updateCreature(creature) {
+  let nearestFood = findNearestFood(creature);
+  
+  if (nearestFood) {
+    let dx = nearestFood.x - creature.x;
+    let dy = nearestFood.y - creature.y;
+    let angle = Math.atan2(dy, dx);
+    
+    creature.x += Math.cos(angle) * creature.speed;
+    creature.y += Math.sin(angle) * creature.speed;
+    
+    // If close enough, consume
+    if (Math.hypot(dx, dy) < creature.size) {
+      creature.energy += nearestFood.energy;
+      food.splice(food.indexOf(nearestFood), 1);
     }
+  } else {
+    wanderDirection(creature);
+    creature.x += Math.cos(creature.direction) * creature.speed;
+    creature.y += Math.sin(creature.direction) * creature.speed;
+  }
 
-    let target = findTarget(c);
-    if (target) {
-      let dx = target.x - c.x;
-      let dy = target.y - c.y;
-      c.direction = Math.atan2(dy, dx);
-    } else {
-      c.direction += (Math.random() - 0.5) * 0.1;
-    }
-
-    c.x += Math.cos(c.direction) * c.speed;
-    c.y += Math.sin(c.direction) * c.speed;
-
-    c.x = Math.max(0, Math.min(canvas.width, c.x));
-    c.y = Math.max(0, Math.min(canvas.height, c.y));
-
-    tryMating(c);
-  });
-
-  creatures = creatures.filter(c => !c.dead);
+  // Survival and growth
+  creature.age += 1;
+  if (creature.energy > 50) {
+    creature.size += 0.2;
+    creature.speed += 0.05;
+    creature.energy -= 25;
+  }
 }
+
 
 function findTarget(creature) {
   let nearby = creatures.filter(other => {
