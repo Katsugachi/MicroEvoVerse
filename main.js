@@ -1,4 +1,3 @@
-// 🌱 Global Simulation Variables
 let creatures = [];
 let isRunning = false;
 let mutationRate = 0.05;
@@ -13,11 +12,9 @@ let tick = 0;
 
 const seasonNames = ["Spring", "Summer", "Autumn", "Winter"];
 
-// 🎨 Canvas Setup
 const canvas = document.getElementById("simulationCanvas");
 const ctx = canvas.getContext("2d");
 
-// 📊 DOM Elements
 const creatureCountEl = document.getElementById("creatureCount");
 const mutationSlider = document.getElementById("mutationSlider");
 const seasonSlider = document.getElementById("seasonSlider");
@@ -37,7 +34,6 @@ const leaderCountEl = document.getElementById("leaderCount");
 const workerCountEl = document.getElementById("workerCount");
 const eliteCountEl = document.getElementById("eliteCount");
 
-// 🎛️ Configuration Inputs
 mutationSlider.addEventListener("input", () => {
   mutationRate = parseFloat(mutationSlider.value);
   mutationDisplay.textContent = mutationRate.toFixed(2);
@@ -51,7 +47,6 @@ seasonRateSlider.addEventListener("input", () => {
   seasonRateDisplay.textContent = seasonRate;
 });
 
-// 🚀 Simulation Controls
 function startSimulation() {
   if (!isRunning) {
     isRunning = true;
@@ -74,7 +69,6 @@ function resetSimulation() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-// 🔁 Simulation Loop
 function simulationLoop() {
   if (!isRunning) return;
 
@@ -90,14 +84,12 @@ function simulationLoop() {
   requestAnimationFrame(simulationLoop);
 }
 
-// 🌦️ Season Cycle
 function changeSeason() {
   const i = seasonNames.indexOf(currentSeason);
   currentSeason = seasonNames[(i + 1) % seasonNames.length];
   currentSeasonEl.textContent = currentSeason;
 }
 
-// 🧪 Creature Blueprint
 function createCreature(parentA = null, parentB = null) {
   const base = {
     x: Math.random() * canvas.width,
@@ -108,7 +100,6 @@ function createCreature(parentA = null, parentB = null) {
     sense: 50 + Math.random() * 100
   };
 
-  // Inherit if parents exist
   if (parentA && parentB) {
     base.speed = averageTrait(parentA.speed, parentB.speed, "speed");
     base.size = averageTrait(parentA.size, parentB.size, "size");
@@ -136,27 +127,24 @@ function averageTrait(a, b, key) {
   return Math.max(1, value);
 }
 
-// 🧠 Creature Update
 function updateCreatures() {
   if (creatures.length < 30) creatures.push(createCreature());
 
   creatures.forEach(c => {
     c.age += 1;
     if (c.age > c.lifespan) {
-      deathCount++;
       c.dead = true;
+      deathCount++;
       return;
     }
 
-    const targetX = canvas.width / 2;
-    const targetY = canvas.height / 2;
-
-    const dx = targetX - c.x;
-    const dy = targetY - c.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-
-    if (dist < c.sense) {
+    let target = findTarget(c);
+    if (target) {
+      let dx = target.x - c.x;
+      let dy = target.y - c.y;
       c.direction = Math.atan2(dy, dx);
+    } else {
+      c.direction += (Math.random() - 0.5) * 0.1;
     }
 
     c.x += Math.cos(c.direction) * c.speed;
@@ -171,7 +159,30 @@ function updateCreatures() {
   creatures = creatures.filter(c => !c.dead);
 }
 
-// 💘 Mating System
+function findTarget(creature) {
+  let nearby = creatures.filter(other => {
+    if (other === creature || other.dead) return false;
+    return distance(creature, other) < creature.sense;
+  });
+
+  let mate = nearby.find(o => canMate(creature, o));
+  if (mate) return mate;
+
+  let leader = nearby.find(o => o.socialClass === "leader");
+  if (leader) return leader;
+
+  if (foodLevel > 0) return { x: canvas.width / 2, y: canvas.height / 2 };
+
+  return null;
+}
+
+function canMate(a, b) {
+  return !a.mate && !b.mate &&
+         a.disposition === "friendly" &&
+         Math.abs(a.size - b.size) < 2 &&
+         Math.abs(a.speed - b.speed) < 2;
+}
+
 function tryMating(creature) {
   if (creature.mate || creature.disposition === "aggressive") return;
 
@@ -197,7 +208,6 @@ function distance(a, b) {
   return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 }
 
-// 🏛️ Governance Logic
 function assignGovernments() {
   const elite = [];
   const leaders = [];
@@ -214,6 +224,7 @@ function assignGovernments() {
       elite.push(c);
     } else {
       c.socialClass = "worker";
+      c.government = "tribal";
       workers.push(c);
     }
   });
@@ -230,7 +241,6 @@ function dominantGovernment() {
   return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
 }
 
-// 🌩️ Disaster Response
 function triggerDisaster(type) {
   creatures.forEach(c => {
     if (type === "fire" && c.size < 7) c.lifespan -= 300;
@@ -245,7 +255,6 @@ function triggerDisaster(type) {
   });
 }
 
-// 🎯 Stat Updates
 function updateStats() {
   creatureCountEl.textContent = creatures.length;
   birthEl.textContent = birthCount;
@@ -253,7 +262,6 @@ function updateStats() {
   foodEl.textContent = Math.max(0, Math.round(foodLevel));
 }
 
-// 📊 Shared Stats for Graph Page
 function updateSharedStats() {
   const liveTraits = {
     population: creatures.length,
@@ -275,4 +283,24 @@ function avgTrait(key) {
   if (creatures.length === 0) return 0;
   const total = creatures.reduce((sum, c) => sum + (c[key] || 0), 0);
   return parseFloat((total / creatures.length).toFixed(2));
+}
+
+function drawSimulation() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  creatures.forEach(c => {
+    if (c.socialClass === "leader") ctx.fillStyle = "gold";
+    else if (c.socialClass === "elite") ctx.fillStyle = "silver";
+    else ctx.fillStyle = "green";
+
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, c.size, 0, 2 * Math.PI);
+    ctx.fill();
+
+    // Optional direction line
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(c.x, c.y);
+    ctx.lineTo(c.x + Math.cos(c.direction) * c.size * 2, c.y + Math.sin(c.direction) * c.size * 2);
+    ctx.stroke();
+  });
 }
